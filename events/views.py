@@ -1,0 +1,41 @@
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import Event, Registration
+from .serializers import EventSerializer,RegistrationSerializer
+
+class EventListView(generics.ListAPIView):
+    queryset=Event.objects.all().order_by('date')
+    serializer_class=EventSerializer
+    permission_classes=[AllowAny]
+
+
+class EventDetailView(generics.RetrieveAPIView):
+    queryset=Event.objects.all()
+    serializer_class=EventSerializer
+    permission_classes=[AllowAny]
+
+
+class EventRegisterView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self, request, pk):
+        try:
+            event=Event.objects.get(pk=pk)
+        except Event.DoesNotExist:
+            return Response({'detail':'Event not found'},status=status.HTTP_404_NOT_FOUND)
+        
+        if Registration.objects.filter(user=request.user, event=event).exists():
+            return Response({'detail': 'Already registered for this event'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        registration = Registration.objects.create(user=request.user, event=event)
+        serializer = RegistrationSerializer(registration)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MyRegistrationsView(generics.ListAPIView):
+    serializer_class = RegistrationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Registration.objects.filter(user=self.request.user).order_by('-registered_at')
