@@ -4,12 +4,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Event, Registration
 from .serializers import EventSerializer,RegistrationSerializer
+from rest_framework import filters
+ #searchfilter
 
 class EventListView(generics.ListAPIView):
     queryset=Event.objects.all().order_by('date')
     serializer_class=EventSerializer
     permission_classes=[AllowAny]
-
+    filter_backends = [filters.SearchFilter]
+    search_fields=['title','description','location']
 
 class EventDetailView(generics.RetrieveAPIView):
     queryset=Event.objects.all()
