@@ -321,3 +321,8 @@ Response (200):
 - CORS is configured via `CORS_ALLOWED_ORIGINS` to allow the deployed frontend origin.
 
 > Note: The free Render tier uses an ephemeral filesystem, so SQLite data may reset on redeploys. In a production setup, PostgreSQL (via `DATABASE_URL`) would be used for persistent storage.
+
+## Interactive API Docs
+
+Swagger UI: `/api/docs/`
+OpenAPI schema: `/api/schema/`
