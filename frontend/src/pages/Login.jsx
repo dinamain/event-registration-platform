@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-
+import { useLocation } from 'react-router-dom';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const location = useLocation();
+  const successMessage = location.state?.message;
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -31,11 +32,14 @@ function Login() {
     } finally {
       setLoading(false);
     }
+    
   };
 
   return (
     <div className="container">
       <h2>Login</h2>
+      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
+{error && <p style={{ color: 'red' }}>{error}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <div>

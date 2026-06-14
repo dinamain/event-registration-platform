@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+
 
 function Register() {
   const [name, setName] = useState('');
@@ -10,7 +10,7 @@ function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,10 +19,8 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await api.post('/register', { name, email, password });
-      const { user, access, refresh } = response.data;
-      login(user, access, refresh);
-      navigate('/');
+      await api.post('/register', { name, email, password });
+      navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
     } catch (err) {
       if (err.response && err.response.data) {
         const data = err.response.data;
