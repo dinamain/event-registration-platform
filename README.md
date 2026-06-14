@@ -334,3 +334,37 @@ pytest -v
 ```
 
 12 tests covering authentication, event registration (including duplicate-prevention), and admin permission boundaries.
+
+
+## Deploying to Azure (App Service)
+
+This project's Docker setup is directly compatible with Azure App Service's "Web App for Containers" feature. Steps to deploy:
+
+1. **Create an Azure Container Registry (ACR)** to store the Docker image:
+```bash
+   az acr create --resource-group myResourceGroup --name myRegistry --sku Basic
+```
+
+2. **Build and push the backend image to ACR**:
+```bash
+   az acr build --registry myRegistry --image event-platform-backend:latest .
+```
+
+3. **Create an App Service plan and Web App for Containers**:
+```bash
+   az appservice plan create --name myAppPlan --resource-group myResourceGroup --is-linux --sku B1
+   az webapp create --resource-group myResourceGroup --plan myAppPlan --name event-platform-api --deploy-container-image-name myRegistry.azurecr.io/event-platform-backend:latest
+```
+
+4. **Configure environment variables** (App Service > Configuration > Application settings):
+   - `SECRET_KEY`
+   - `DEBUG=False`
+   - `ALLOWED_HOSTS=event-platform-api.azurewebsites.net`
+   - `CORS_ALLOWED_ORIGINS=<frontend-url>`
+   - `DATABASE_URL` (if using Azure Database for PostgreSQL)
+
+5. **(Optional) Azure Database for PostgreSQL** — create a managed Postgres instance and set its connection string as `DATABASE_URL`; the project's `dj-database-url` configuration picks this up automatically without code changes.
+
+6. **(Optional) Azure Key Vault** — for production, secrets like `SECRET_KEY` and `DATABASE_URL` would be stored in Key Vault and referenced via App Service's Key Vault references, rather than as plain Application Settings.
+
+This project currently runs on Render + Vercel for the live demo; the steps above reflect how the same Dockerized backend would be deployed in an Azure-based enterprise environment.
