@@ -7,9 +7,10 @@ import Register from './pages/Register';
 import EventList from './pages/EventList';
 import EventDetail from './pages/EventDetail';
 import MyRegistrations from './pages/MyRegistrations';
-
+import { ThemeProvider } from './context/ThemeContext';
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <BrowserRouter>
         <Navbar />
@@ -29,6 +30,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

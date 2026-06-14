@@ -64,9 +64,9 @@ function EventDetail() {
       <p><strong>Date:</strong> {new Date(event.date).toLocaleString()}</p>
       <p><strong>Location:</strong> {event.location}</p>
 
-      <button onClick={handleRegister} disabled={registering}>
-        {registering ? 'Registering...' : 'Register for this event'}
-      </button>
+      <button className="btn" onClick={handleRegister} disabled={registering}>
+  {registering ? 'Registering...' : 'Register for this event'}
+</button>
 
       {message && <p>{message}</p>}
     </div>
