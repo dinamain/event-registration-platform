@@ -326,3 +326,11 @@ Response (200):
 
 Swagger UI: `/api/docs/`
 OpenAPI schema: `/api/schema/`
+
+## Running Tests
+
+```bash
+pytest -v
+```
+
+12 tests covering authentication, event registration (including duplicate-prevention), and admin permission boundaries.
