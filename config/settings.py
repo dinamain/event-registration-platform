@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'accounts',
     'events',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +61,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
      'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
@@ -146,3 +148,9 @@ CORS_ALLOWED_ORIGINS = config(
     default='http://localhost:5173,http://localhost:5174',
     cast=lambda v: v.split(',')
 )
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Event Registration Platform API',
+    'DESCRIPTION': 'API for user authentication, event listing, and event registration.',
+    'VERSION': '1.0.0',
+}
