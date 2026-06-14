@@ -11,6 +11,7 @@ const { theme, toggleTheme } = useTheme();
         <>
           <span> Welcome, {user.name}</span>
           <Link to="/my-registrations"> My Registrations</Link>
+          {user.is_staff && <Link to="/admin"> Admin Dashboard</Link>}
           <button onClick={logout}>Logout</button>
         </>
       ) : (

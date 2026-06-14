@@ -92,6 +92,16 @@ event_platform/
 
    The API will be available at `http://127.0.0.1:8000/api/`.
 
+## Running with Docker
+
+```bash
+docker-compose up --build
+```
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+
+
 ### Database Setup
 
 By default, the project uses **SQLite** — no additional setup required. The database file (`db.sqlite3`) is created automatically when you run migrations.

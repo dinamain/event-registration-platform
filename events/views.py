@@ -6,6 +6,9 @@ from .models import Event, Registration
 from .serializers import EventSerializer,RegistrationSerializer
 from rest_framework import filters
  #searchfilter
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from .serializers import EventSerializer, RegistrationSerializer, AdminRegistrationSerializer
+ 
 
 class EventListView(generics.ListAPIView):
     queryset=Event.objects.all().order_by('date')
@@ -42,3 +45,19 @@ class MyRegistrationsView(generics.ListAPIView):
 
     def get_queryset(self):
         return Registration.objects.filter(user=self.request.user).order_by('-registered_at')
+    
+
+class EventCreateView(generics.CreateAPIView):
+    queryset=Event.objects.all()
+    serializer_class=EventSerializer
+    permission_classes=[IsAdminUser]
+
+class EventUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset=Event.objects.all()
+    serializer_class=EventSerializer
+    permission_classes=[IsAdminUser]
+
+class AdminRegistrationsView(generics.ListAPIView):
+    queryset = Registration.objects.all().order_by('-registered_at')
+    serializer_class = AdminRegistrationSerializer
+    permission_classes = [IsAdminUser]

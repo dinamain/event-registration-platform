@@ -8,6 +8,10 @@ import EventList from './pages/EventList';
 import EventDetail from './pages/EventDetail';
 import MyRegistrations from './pages/MyRegistrations';
 import { ThemeProvider } from './context/ThemeContext';
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/AdminDashboard';
+
+
 function App() {
   return (
     <ThemeProvider>
@@ -27,6 +31,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin" element={
+  <AdminRoute><AdminDashboard /></AdminRoute>
+} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
