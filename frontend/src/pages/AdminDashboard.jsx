@@ -8,7 +8,7 @@ function AdminDashboard() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', date: '', location: '',latitude: '', longitude: '' });
   const [saving, setSaving] = useState(false);
-
+  const [generating, setGenerating] = useState(false);
   const fetchEvents = async () => {
     try {
       const res = await api.get('/events', { params: { page_size: 100 } });
@@ -50,6 +50,26 @@ function AdminDashboard() {
       setError('Failed to delete event.');
     }
   };
+  
+const handleGenerateDescription = async () => {
+  if (!form.title) {
+    setError('Enter a title first.');
+    return;
+  }
+  setGenerating(true);
+  setError('');
+  try {
+    const res = await api.post('/admin/generate-description', {
+      title: form.title,
+      location: form.location,
+    });
+    setForm({ ...form, description: res.data.description });
+  } catch (err) {
+    setError('AI generation failed.');
+  } finally {
+    setGenerating(false);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,10 +103,13 @@ function AdminDashboard() {
           <label>Title</label>
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
         </div>
-        <div>
-          <label>Description</label>
-          <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-        </div>
+  <div>
+  <label>Description</label>
+  <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+  <button type="button" className="btn" onClick={handleGenerateDescription} disabled={generating}>
+    {generating ? 'Generating...' : '✨ Generate with AI'}
+  </button>
+</div>
         <div>
           <label>Date</label>
           <input type="datetime-local" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />

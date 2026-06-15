@@ -9,7 +9,9 @@ from rest_framework import filters
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from .serializers import EventSerializer, RegistrationSerializer, AdminRegistrationSerializer
 from django.core.mail import send_mail
+from groq import Groq
 
+from django.conf import settings
 
 class EventListView(generics.ListAPIView):
     queryset=Event.objects.all().order_by('date')
@@ -69,3 +71,34 @@ class AdminRegistrationsView(generics.ListAPIView):
     queryset = Registration.objects.all().order_by('-registered_at')
     serializer_class = AdminRegistrationSerializer
     permission_classes = [IsAdminUser]
+
+
+
+
+class GenerateDescriptionView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        title = request.data.get('title', '')
+        location = request.data.get('location', '')
+
+        if not title:
+            return Response({'detail': 'Title is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        prompt = (
+            f"Write a short, engaging event description (2-3 sentences) for an event titled "
+            f"'{title}'"
+            + (f" taking place in {location}." if location else ".")
+            + " Keep it professional and inviting. Only return the description, no preamble."
+        )
+
+        try:
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+            )
+            description = response.choices[0].message.content.strip()
+            return Response({'description': description})
+        except Exception as e:
+            return Response({'detail': f'AI generation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

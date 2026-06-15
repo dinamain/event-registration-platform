@@ -4,6 +4,7 @@ from .views import (
     EventListView, EventDetailView, EventRegisterView, MyRegistrationsView,
     EventCreateView, EventUpdateDeleteView, AdminRegistrationsView
 )
+from .views import GenerateDescriptionView
 
 urlpatterns = [
     path('events', EventListView.as_view(), name='event-list'),
@@ -13,4 +14,5 @@ urlpatterns = [
     path('admin/events', EventCreateView.as_view(), name='admin-event-create'),
     path('admin/events/<int:pk>', EventUpdateDeleteView.as_view(), name='admin-event-update-delete'),
     path('admin/registrations', AdminRegistrationsView.as_view(), name='admin-registrations'),
+    path('admin/generate-description', GenerateDescriptionView.as_view(), name='generate-description'),
 ]
