@@ -147,7 +147,7 @@ For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-da
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Used by seed command to create a superuser on deploy | none |
 | `EMAIL_HOST_USER` | Gmail address used to send registration confirmation emails | none |
 | `EMAIL_HOST_PASSWORD` | Gmail App Password for SMTP authentication | none |
-
+| `GROQ_API_KEY` | API key for Groq (LLM API used for AI-generated event descriptions) | none |
 ### Frontend (`frontend/.env`)
 
 | Variable | Description |
@@ -367,3 +367,7 @@ This project's Docker setup is directly compatible with Azure App Service's "Web
 6. **(Optional) Azure Key Vault** — for production, secrets like `SECRET_KEY` and `DATABASE_URL` would be stored in Key Vault and referenced via App Service's Key Vault references, rather than as plain Application Settings.
 
 This project currently runs on Render + Vercel for the live demo; the steps above reflect how the same Dockerized backend would be deployed in an Azure-based enterprise environment.
+
+## AI Features
+
+- **AI-generated event descriptions**: In the admin dashboard, staff can click "Generate with AI" after entering an event title (and optional location) to auto-generate a polished description using Groq's API (Llama 3.3 70B). The generated text can be edited before saving.
