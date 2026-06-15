@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
 function EventDetail() {
   const { id } = useParams();
@@ -63,7 +64,21 @@ function EventDetail() {
       <p>{event.description}</p>
       <p><strong>Date:</strong> {new Date(event.date).toLocaleString()}</p>
       <p><strong>Location:</strong> {event.location}</p>
-
+      {event.latitude && event.longitude && (
+  <MapContainer
+    center={[event.latitude, event.longitude]}
+    zoom={13}
+    style={{ height: '300px', width: '100%', marginTop: '1rem', borderRadius: '8px' }}
+  >
+    <TileLayer
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    />
+    <Marker position={[event.latitude, event.longitude]}>
+      <Popup>{event.title}</Popup>
+    </Marker>
+  </MapContainer>
+)}
       <button className="btn" onClick={handleRegister} disabled={registering}>
   {registering ? 'Registering...' : 'Register for this event'}
 </button>

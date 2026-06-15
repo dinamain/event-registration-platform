@@ -6,7 +6,7 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ title: '', description: '', date: '', location: '' });
+  const [form, setForm] = useState({ title: '', description: '', date: '', location: '',latitude: '', longitude: '' });
   const [saving, setSaving] = useState(false);
 
   const fetchEvents = async () => {
@@ -36,6 +36,8 @@ function AdminDashboard() {
       description: event.description,
       date: event.date.slice(0, 16),
       location: event.location,
+      latitude: event.latitude ?? '',
+    longitude: event.longitude ?? '',
     });
   };
 
@@ -93,6 +95,14 @@ function AdminDashboard() {
           <label>Location</label>
           <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required />
         </div>
+        <div>
+        <label>Latitude (optional)</label>
+        <input type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+      </div>
+      <div>
+        <label>Longitude (optional)</label>
+        <input type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+      </div>
         <button type="submit" disabled={saving}>{saving ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
         {editingId && <button type="button" className="btn" onClick={resetForm}>Cancel</button>}
       </form>

@@ -10,7 +10,7 @@ import MyRegistrations from './pages/MyRegistrations';
 import { ThemeProvider } from './context/ThemeContext';
 import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/AdminDashboard';
-
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   return (

@@ -4,7 +4,7 @@ from .models import Event, Registration
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model=Event
-        fields=['id','title','description','date','location','created_at']
+        fields=['id','title','description','date','location','latitude', 'longitude','created_at']
 
 class RegistrationSerializer(serializers.ModelSerializer):
     event=EventSerializer(read_only=True)
