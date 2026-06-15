@@ -8,7 +8,8 @@ from rest_framework import filters
  #searchfilter
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from .serializers import EventSerializer, RegistrationSerializer, AdminRegistrationSerializer
- 
+from django.core.mail import send_mail
+
 
 class EventListView(generics.ListAPIView):
     queryset=Event.objects.all().order_by('date')
@@ -35,6 +36,13 @@ class EventRegisterView(APIView):
             return Response({'detail': 'Already registered for this event'}, status=status.HTTP_400_BAD_REQUEST)
         
         registration = Registration.objects.create(user=request.user, event=event)
+        send_mail(
+            subject=f'Registration Confirmed: {event.title}',
+            message=f'Hi {request.user.name},\n\nYou have successfully registered for "{event.title}" on {event.date} at {event.location}.\n\nThanks!',
+            from_email=None,
+            recipient_list=[request.user.email],
+            fail_silently=False,
+        )
         serializer = RegistrationSerializer(registration)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
