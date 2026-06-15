@@ -135,7 +135,6 @@ For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-da
 ---
 
 ## Environment Variables
-
 ### Backend (`config/settings.py`, via `.env` or hosting environment)
 
 | Variable | Description | Default |
@@ -146,14 +145,14 @@ For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-da
 | `CORS_ALLOWED_ORIGINS` | Comma-separated allowed frontend origins | `http://localhost:5173,http://localhost:5174` |
 | `DATABASE_URL` | PostgreSQL connection string (optional) | falls back to SQLite |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Used by seed command to create a superuser on deploy | none |
+| `EMAIL_HOST_USER` | Gmail address used to send registration confirmation emails | none |
+| `EMAIL_HOST_PASSWORD` | Gmail App Password for SMTP authentication | none |
 
 ### Frontend (`frontend/.env`)
 
 | Variable | Description |
 |---|---|
 | `VITE_API_URL` | Base URL of the backend API (e.g. `http://127.0.0.1:8000/api`) |
-
----
 
 ## API Documentation
 
