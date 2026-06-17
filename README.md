@@ -46,7 +46,14 @@ event_platform/
 ---
 
 ## Local Setup
+## Running with Celery (Async Email)
 
+Event registration emails are sent asynchronously via Celery. To enable this locally:
+
+1. Run Redis (e.g. via Docker): `docker run -d -p 6379:6379 --name redis-local redis`
+2. Start a Celery worker in a separate terminal: `celery -A config worker --loglevel=info -P solo`
+
+Without a running worker, registration still succeeds, but the email task will queue in Redis until a worker is available to process it.
 ### Prerequisites
 
 - Python 3.10+
@@ -148,6 +155,8 @@ For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-da
 | `EMAIL_HOST_USER` | Gmail address used to send registration confirmation emails | none |
 | `EMAIL_HOST_PASSWORD` | Gmail App Password for SMTP authentication | none |
 | `GROQ_API_KEY` | API key for Groq (LLM API used for AI-generated event descriptions) | none |
+
+| `CELERY_BROKER_URL` | Redis connection string used by Celery for async tasks | `redis://localhost:6379/0` |
 ### Frontend (`frontend/.env`)
 
 | Variable | Description |

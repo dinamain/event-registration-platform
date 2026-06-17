@@ -165,3 +165,9 @@ DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER', default='noreply@eventplatform.co
 
 
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
+
+
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
