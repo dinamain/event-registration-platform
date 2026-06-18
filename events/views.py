@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from groq import Groq
 from .tasks import send_registration_email
 from django.conf import settings
+from .throttles import AIGenerationThrottle
 
 class EventListView(generics.ListAPIView):
     queryset=Event.objects.all().order_by('date')
@@ -79,7 +80,7 @@ class AdminRegistrationsView(generics.ListAPIView):
 
 class GenerateDescriptionView(APIView):
     permission_classes = [IsAdminUser]
-
+    throttle_classes = [AIGenerationThrottle]
     def post(self, request):
         title = request.data.get('title', '')
         location = request.data.get('location', '')
