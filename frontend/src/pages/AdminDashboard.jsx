@@ -65,8 +65,12 @@ const handleGenerateDescription = async () => {
     });
     setForm({ ...form, description: res.data.description });
   } catch (err) {
+  if (err.response?.status === 429) {
+    setError('AI generation rate limit reached. Please try again later.');
+  } else {
     setError('AI generation failed.');
-  } finally {
+  }
+} finally {
     setGenerating(false);
   }
 };

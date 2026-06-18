@@ -24,12 +24,12 @@ function Login() {
       login(user, access, refresh);
       navigate('/');
     } catch (err) {
-      if (err.response && err.response.data) {
-        setError(err.response.data.non_field_errors?.[0] || 'Login failed');
-      } else {
-        setError('Something went wrong. Please try again.');
-      }
-    } finally {
+  if (err.response?.status === 429) {
+    setError('Too many login attempts. Please wait a minute and try again.');
+  } else {
+    setError(err.response?.data?.non_field_errors?.[0] || 'Login failed');
+  }
+} finally {
       setLoading(false);
     }
     

@@ -1,6 +1,6 @@
 # Event Registration Platform
 
-A full-stack event registration platform where users can register, log in, browse events, register for events, and view their registrations.
+A full-stack event registration platform where users can register, log in, browse events, register for events, and view their registrations. Includes an admin dashboard, AI-generated event descriptions, email notifications, interactive maps, async task processing, and rate limiting.
 
 ## Live Links
 
@@ -12,21 +12,28 @@ A full-stack event registration platform where users can register, log in, brows
 
 ## Tech Stack
 
-- **Frontend**: React.js (Vite), React Router, Axios
+- **Frontend**: React.js (Vite), React Router, Axios, React-Leaflet
 - **Backend**: Django, Django REST Framework
-- **Database**: SQLite (development & demo deployment)
+- **Database**: SQLite (development & demo deployment), PostgreSQL-ready
 - **Authentication**: JWT (djangorestframework-simplejwt)
-- **Deployment**: Render (backend), Vercel (frontend)
+- **Async Tasks**: Celery, Redis
+- **AI**: Groq API (Llama 3.3 70B) for event description generation
+- **Testing & Docs**: Pytest, drf-spectacular (Swagger/OpenAPI)
+- **Deployment**: Render (backend), Vercel (frontend), Docker / Docker Compose, Azure (deployment documented)
 
 ## Features
 
 - User registration and login with hashed passwords
 - JWT-based authentication with automatic token refresh
-- Browse all events (title, description, date, location)
-- View individual event details
+- Browse, search, and paginate events (title, description, date, location)
+- View individual event details, including an interactive map of the venue
 - Register for an event (duplicate registration prevented at both API and database level)
 - View "My Registrations" — all events a user has registered for
-- Responsive UI with loading and error states
+- Admin dashboard for staff users: create, edit, and delete events; view all registrations
+- AI-generated event descriptions in the admin dashboard (Groq/Llama 3.3)
+- Asynchronous email confirmations on registration (Celery + Redis)
+- Rate limiting on login and AI generation endpoints
+- Dark mode and responsive UI with loading and error states
 
 ---
 
@@ -35,10 +42,12 @@ A full-stack event registration platform where users can register, log in, brows
 ```
 event_platform/
 ├── accounts/          # Custom user model, auth serializers/views
-├── events/            # Event & Registration models, serializers/views
-├── config/            # Django project settings & URLs
+├── events/            # Event & Registration models, serializers/views, Celery tasks
+├── config/            # Django project settings, URLs, Celery app, shared throttles
 ├── frontend/          # React (Vite) application
 ├── requirements.txt
+├── docker-compose.yml # Multi-service local stack (backend, celery_worker, redis, frontend)
+├── Dockerfile          # Backend image
 ├── build.sh           # Render build script
 └── manage.py
 ```
@@ -46,19 +55,13 @@ event_platform/
 ---
 
 ## Local Setup
-## Running with Celery (Async Email)
 
-Event registration emails are sent asynchronously via Celery. To enable this locally:
-
-1. Run Redis (e.g. via Docker): `docker run -d -p 6379:6379 --name redis-local redis`
-2. Start a Celery worker in a separate terminal: `celery -A config worker --loglevel=info -P solo`
-
-Without a running worker, registration still succeeds, but the email task will queue in Redis until a worker is available to process it.
 ### Prerequisites
 
 - Python 3.10+
 - Node.js 18+
 - Git
+- Docker (optional, for Redis/Celery and full containerized setup)
 
 ### Backend Setup
 
@@ -99,22 +102,6 @@ Without a running worker, registration still succeeds, but the email task will q
 
    The API will be available at `http://127.0.0.1:8000/api/`.
 
-## Running with Docker
-
-```bash
-docker-compose up --build
-```
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000/api
-
-
-### Database Setup
-
-By default, the project uses **SQLite** — no additional setup required. The database file (`db.sqlite3`) is created automatically when you run migrations.
-
-For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-database-url`). If `DATABASE_URL` is not set, it falls back to SQLite automatically.
-
 ### Frontend Setup
 
 1. Navigate to the frontend folder:
@@ -139,9 +126,43 @@ For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-da
 
    The app will be available at `http://localhost:5173`.
 
+### Database Setup
+
+By default, the project uses **SQLite** — no additional setup required. The database file (`db.sqlite3`) is created automatically when you run migrations.
+
+For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-database-url`). If `DATABASE_URL` is not set, it falls back to SQLite automatically.
+
+### Running with Celery (Async Email)
+
+Event registration emails are sent asynchronously via Celery, so the API responds instantly while the email sends in the background.
+
+1. Run Redis (e.g. via Docker):
+   ```bash
+   docker run -d -p 6379:6379 --name redis-local redis
+   ```
+2. Start a Celery worker in a separate terminal:
+   ```bash
+   celery -A config worker --loglevel=info -P solo
+   ```
+   (`-P solo` is required on Windows; omit it on macOS/Linux.)
+
+Without a running worker, registration still succeeds, but the email task queues in Redis until a worker becomes available to process it.
+
+### Running with Docker (Full Stack)
+
+```bash
+docker-compose up --build
+```
+
+This starts four services: `redis`, `backend` (Django + gunicorn), `celery_worker` (async email processing), and `frontend` (React build served via nginx).
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+
 ---
 
 ## Environment Variables
+
 ### Backend (`config/settings.py`, via `.env` or hosting environment)
 
 | Variable | Description | Default |
@@ -155,18 +176,25 @@ For production, the project supports PostgreSQL via `DATABASE_URL` (using `dj-da
 | `EMAIL_HOST_USER` | Gmail address used to send registration confirmation emails | none |
 | `EMAIL_HOST_PASSWORD` | Gmail App Password for SMTP authentication | none |
 | `GROQ_API_KEY` | API key for Groq (LLM API used for AI-generated event descriptions) | none |
-
 | `CELERY_BROKER_URL` | Redis connection string used by Celery for async tasks | `redis://localhost:6379/0` |
+
 ### Frontend (`frontend/.env`)
 
 | Variable | Description |
 |---|---|
 | `VITE_API_URL` | Base URL of the backend API (e.g. `http://127.0.0.1:8000/api`) |
 
+---
+
 ## API Documentation
 
 Base URL (local): `http://127.0.0.1:8000/api`
 Base URL (live): `https://event-registration-platform-qun4.onrender.com/api`
+
+Interactive docs are also available:
+
+- Swagger UI: `/api/docs/`
+- OpenAPI schema: `/api/schema/`
 
 ### Authentication
 
@@ -185,7 +213,7 @@ Request body:
 Response (201):
 ```json
 {
-  "user": { "id": 1, "name": "Jane Doe", "email": "jane@example.com" },
+  "user": { "id": 1, "name": "Jane Doe", "email": "jane@example.com", "is_staff": false },
   "access": "<jwt_access_token>",
   "refresh": "<jwt_refresh_token>"
 }
@@ -209,6 +237,8 @@ Errors (400):
 { "non_field_errors": ["Invalid email or password"] }
 ```
 
+Rate limited to 5 attempts/minute per IP — exceeding this returns `429 Too Many Requests`.
+
 #### Refresh Token
 ```
 POST /api/token/refresh/
@@ -228,22 +258,29 @@ Response (200):
 
 #### List All Events
 ```
-GET /api/events
+GET /api/events?search=&page=1
 ```
-No authentication required.
+No authentication required. Supports search (title, description, location) and pagination.
 
 Response (200):
 ```json
-[
-  {
-    "id": 1,
-    "title": "AI Era",
-    "description": "Conducted by Google",
-    "date": "2026-06-24T12:00:00Z",
-    "location": "Thiruvananthapuram",
-    "created_at": "2026-06-14T05:10:39.774277Z"
-  }
-]
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "title": "AI Era",
+      "description": "Conducted by Google",
+      "date": "2026-06-24T12:00:00Z",
+      "location": "Thiruvananthapuram",
+      "latitude": 8.5241,
+      "longitude": 76.9366,
+      "created_at": "2026-06-14T05:10:39.774277Z"
+    }
+  ]
+}
 ```
 
 #### Get Event Detail
@@ -252,7 +289,7 @@ GET /api/events/:id
 ```
 No authentication required.
 
-Response (200): single event object (same shape as above).
+Response (200): single event object (same shape as above), used to render an interactive map when `latitude`/`longitude` are present.
 
 ---
 
@@ -278,22 +315,50 @@ Errors:
 - `404` if event not found: `{ "detail": "Event not found" }`
 - `401` if not authenticated
 
+A confirmation email is queued via Celery and sent asynchronously after a successful registration.
+
 #### Get My Registrations
 ```
-GET /api/my-registrations
+GET /api/my-registrations?page=1
 ```
-**Requires authentication** (`Authorization: Bearer <access_token>`).
+**Requires authentication** (`Authorization: Bearer <access_token>`). Paginated, same shape as the events list.
 
+---
+
+### Admin Endpoints
+
+All admin endpoints require an authenticated staff user (`is_staff: true`); regular users receive `403 Forbidden`.
+
+#### Create Event
+```
+POST /api/admin/events
+```
+
+#### Update / Delete Event
+```
+PUT /api/admin/events/:id
+DELETE /api/admin/events/:id
+```
+
+#### View All Registrations
+```
+GET /api/admin/registrations
+```
+Returns every registration across all users, with nested user and event details.
+
+#### Generate AI Event Description
+```
+POST /api/admin/generate-description
+```
+Request body:
+```json
+{ "title": "AI Era", "location": "Thiruvananthapuram" }
+```
 Response (200):
 ```json
-[
-  {
-    "id": 1,
-    "event": { "id": 1, "title": "AI Era", "description": "...", "date": "...", "location": "...", "created_at": "..." },
-    "registered_at": "2026-06-14T06:00:00Z"
-  }
-]
+{ "description": "Join us at 'AI Era' in Thiruvananthapuram..." }
 ```
+Uses Groq's API (Llama 3.3 70B) to generate a short, professional event description. Rate limited to 10 requests/hour per user.
 
 ---
 
@@ -307,17 +372,54 @@ Response (200):
 
 ---
 
+## Rate Limiting
+
+To protect against abuse and control AI API costs, two endpoints are throttled using DRF's throttling framework:
+
+| Endpoint | Limit | Reason |
+|---|---|---|
+| `POST /api/login` | 5 attempts/minute per IP | Prevents brute-force password guessing |
+| `POST /api/admin/generate-description` | 10 requests/hour per user | Prevents runaway LLM API usage/costs |
+
+Exceeding a limit returns `429 Too Many Requests`.
+
+---
+
+## Asynchronous Tasks (Celery + Redis)
+
+Sending a registration confirmation email can take several seconds (SMTP round-trip). To avoid blocking the API response on this, email sending is offloaded to a Celery task (`events/tasks.py`), queued via Redis, and processed by a separate worker process. The API returns immediately after creating the registration; the email is delivered moments later in the background.
+
+---
+
 ## Database Structure
 
 **Users** (`accounts.User` — custom user model, email-based login)
-- `id`, `name`, `email` (unique), `password` (hashed), `created_at`
+- `id`, `name`, `email` (unique), `password` (hashed), `is_staff`, `created_at`
 
 **Events** (`events.Event`)
-- `id`, `title`, `description`, `date`, `location`, `created_at`
+- `id`, `title`, `description`, `date`, `location`, `latitude`, `longitude`, `created_at`
 
 **Registrations** (`events.Registration`)
 - `id`, `user_id` (FK), `event_id` (FK), `registered_at`
 - Unique constraint on `(user, event)` — prevents duplicate registrations at the database level
+
+---
+
+## Testing
+
+```bash
+pytest -v
+```
+
+12 tests covering authentication, password hashing, event registration (including duplicate-prevention), scoped "my registrations," and admin permission boundaries.
+
+GitHub Actions CI runs this test suite automatically on every push to `main`.
+
+---
+
+## AI Features
+
+**AI-generated event descriptions**: in the admin dashboard, staff can click "Generate with AI" after entering an event title (and optional location) to auto-generate a polished description using Groq's API (Llama 3.3 70B). The generated text can be edited before saving, and the endpoint gracefully handles API failures and is rate limited.
 
 ---
 
@@ -327,42 +429,29 @@ Response (200):
 - A custom management command (`seed_data`) seeds sample events and an admin user on deploy via `build.sh`.
 - Frontend deployed on Vercel, with `VITE_API_URL` pointing to the live Render backend.
 - CORS is configured via `CORS_ALLOWED_ORIGINS` to allow the deployed frontend origin.
+- Email and AI features work on the live deployment via `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` and `GROQ_API_KEY` environment variables configured on Render.
 
 > Note: The free Render tier uses an ephemeral filesystem, so SQLite data may reset on redeploys. In a production setup, PostgreSQL (via `DATABASE_URL`) would be used for persistent storage.
-
-## Interactive API Docs
-
-Swagger UI: `/api/docs/`
-OpenAPI schema: `/api/schema/`
-
-## Running Tests
-
-```bash
-pytest -v
-```
-
-12 tests covering authentication, event registration (including duplicate-prevention), and admin permission boundaries.
-
 
 ## Deploying to Azure (App Service)
 
 This project's Docker setup is directly compatible with Azure App Service's "Web App for Containers" feature. Steps to deploy:
 
 1. **Create an Azure Container Registry (ACR)** to store the Docker image:
-```bash
+   ```bash
    az acr create --resource-group myResourceGroup --name myRegistry --sku Basic
-```
+   ```
 
 2. **Build and push the backend image to ACR**:
-```bash
+   ```bash
    az acr build --registry myRegistry --image event-platform-backend:latest .
-```
+   ```
 
 3. **Create an App Service plan and Web App for Containers**:
-```bash
+   ```bash
    az appservice plan create --name myAppPlan --resource-group myResourceGroup --is-linux --sku B1
    az webapp create --resource-group myResourceGroup --plan myAppPlan --name event-platform-api --deploy-container-image-name myRegistry.azurecr.io/event-platform-backend:latest
-```
+   ```
 
 4. **Configure environment variables** (App Service > Configuration > Application settings):
    - `SECRET_KEY`
@@ -376,7 +465,3 @@ This project's Docker setup is directly compatible with Azure App Service's "Web
 6. **(Optional) Azure Key Vault** — for production, secrets like `SECRET_KEY` and `DATABASE_URL` would be stored in Key Vault and referenced via App Service's Key Vault references, rather than as plain Application Settings.
 
 This project currently runs on Render + Vercel for the live demo; the steps above reflect how the same Dockerized backend would be deployed in an Azure-based enterprise environment.
-
-## AI Features
-
-- **AI-generated event descriptions**: In the admin dashboard, staff can click "Generate with AI" after entering an event title (and optional location) to auto-generate a polished description using Groq's API (Llama 3.3 70B). The generated text can be edited before saving.

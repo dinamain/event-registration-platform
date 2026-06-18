@@ -81,6 +81,7 @@ class AdminRegistrationsView(generics.ListAPIView):
 class GenerateDescriptionView(APIView):
     permission_classes = [IsAdminUser]
     throttle_classes = [AIGenerationThrottle]
+    throttle_scope = 'ai_generation'
     def post(self, request):
         title = request.data.get('title', '')
         location = request.data.get('location', '')
